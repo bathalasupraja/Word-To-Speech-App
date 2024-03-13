@@ -17,6 +17,7 @@ class ViewController: UIViewController {
     var pickerView = UIPickerView()
     
     let currencies = ["rupee", "doller", "dinar"]
+    var speechSynthesizer: AVSpeechSynthesizer?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -63,10 +64,10 @@ class ViewController: UIViewController {
             print("❓", error.localizedDescription)
         }
         
-        var speechSynthesizer = AVSpeechSynthesizer()
+        speechSynthesizer = AVSpeechSynthesizer()
         let speechUtterance = AVSpeechUtterance(string: text)
         speechUtterance.voice = AVSpeechSynthesisVoice(language: "en-GB")
-        speechSynthesizer.speak(speechUtterance)
+        speechSynthesizer?.speak(speechUtterance)
     }
 }
 
