@@ -8,6 +8,7 @@
 import UIKit
 import AVFoundation
 
+
 struct LanguageModel {
     var name: String
     var code: String
@@ -21,15 +22,16 @@ class ViewController: UIViewController {
     @IBOutlet weak var speakButton: UIButton!
     
     var pickerView = UIPickerView()
-   // var languagesPickerView: UIPickerView!
     
     let currencies = ["rupee", "doller", "dinar"]
     var languages = [LanguageModel]()
+    var selectedLanguage: LanguageModel?
     
     var speechSynthesizer: AVSpeechSynthesizer?
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        createLanguages()
         numberTextField.delegate = self
         currencyTextField.delegate = self
         languageTextField.delegate = self
@@ -40,8 +42,7 @@ class ViewController: UIViewController {
         
         pickerView.delegate = self
         pickerView.dataSource = self
-       // languagesPickerView.delegate = self
-        //languagesPickerView.dataSource = self
+        
         currencyTextField.inputView = pickerView
         languageTextField.inputView = pickerView
         
@@ -74,7 +75,6 @@ class ViewController: UIViewController {
         languages.append(LanguageModel(name: "Xhosa", code: "xh"))
         languages.append(LanguageModel(name: "Yiddish", code: "ji"))
         languages.append(LanguageModel(name: "Zulu", code: "zu"))
-        
     }
     
     /// Trigger when user click oin the OK button
@@ -82,7 +82,7 @@ class ViewController: UIViewController {
         numberTextField.resignFirstResponder()
         currencyTextField.resignFirstResponder()
         if let numberText = self.numberTextField.text,
-           let number = Int(numberText), let currency = currencyTextField.text, let languages = languageTextField.text, currency.count > 0, number > 0, languages > languages {
+           let number = Int(numberText), let currency = currencyTextField.text, selectedLanguage != nil, currency.count > 0, number > 0 {
             let formatter = NumberFormatter()
             formatter.numberStyle = .spellOut
             if let string = formatter.string(from: number as NSNumber) {
@@ -91,7 +91,7 @@ class ViewController: UIViewController {
                 speak(text)
             }
         } else {
-            let alert = UIAlertController(title: "Invalid input", message: "Enter a valid number and currency.", preferredStyle: .alert)
+            let alert = UIAlertController(title: "Invalid input", message: "Enter a valid number and currency and language.", preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "Ok", style: .default))
             self.present(alert, animated: true)
         }
@@ -108,7 +108,11 @@ class ViewController: UIViewController {
         
         speechSynthesizer = AVSpeechSynthesizer()
         let speechUtterance = AVSpeechUtterance(string: text)
-        speechUtterance.voice = AVSpeechSynthesisVoice(language: "en-GB")
+        if let code = selectedLanguage?.code {
+            print("\n>>>> selected language code: \(code)")
+            speechUtterance.voice = AVSpeechSynthesisVoice(language: code)
+        }
+        
         speechSynthesizer?.speak(speechUtterance)
     }
 }
@@ -122,6 +126,8 @@ extension ViewController: UITextFieldDelegate {
     func textFieldDidBeginEditing(_ textField: UITextField) {
         if textField.tag == 2 { /// 2 - currency
             textField.text = currencies.first
+        } else if textField.tag == 3 {
+            textField.text = languages.first?.name
         }
     }
 }
@@ -140,17 +146,26 @@ extension ViewController: UIPickerViewDataSource, UIPickerViewDelegate {
         }
     }
     
-    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String! {
-        let currency = currencies[row]
-        currencyTextField.text = currency
-        return currency
+    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
+        if pickerView.tag == 2 {
+            let currency = currencies[row]
+            return currency
+        } else if pickerView.tag == 3 {
+            let language = languages[row]
+            return language.name
+        }
+        return nil
     }
     
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-      //  if pickerView.tag == 2 {
+        if pickerView.tag == 2 {
             let currency = currencies[row]
             currencyTextField.text = currency
+        } else if pickerView.tag == 3 {
+            let language = languages[row]
+            languageTextField.text = language.name
+            selectedLanguage = language
         }
     }
-//}
+}
 
